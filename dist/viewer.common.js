@@ -5,7 +5,7 @@
  * Copyright (c) 2015-2017 Chen Fengyuan
  * Released under the MIT license
  *
- * Date: 2017-11-05T04:38:31.466Z
+ * Date: 2017-12-08T02:14:16.797Z
  */
 
 'use strict';
@@ -798,6 +798,50 @@ function getPointersCenter(pointers) {
   };
 }
 
+/**
+ * Get the correct position of a point in rectangle
+ * @param {number} clientWidth - container box width
+ * @param {number} clientHeight - container box height
+ * @param {number} imageWidth - image width
+ * @param {number} imageHeight - image height
+ * @param {number} left - current left
+ * @param {number} top - current top
+ * @returns {{top: *, left: *}} - correct position
+ */
+function getPosition(clientWidth, clientHeight, imageWidth, imageHeight, left, top) {
+  if (imageWidth > clientWidth) {
+    if (left > 0) {
+      left = 0;
+    } else if (left < clientWidth - imageWidth) {
+      left = clientWidth - imageWidth;
+    }
+  } else {
+    if (left < 0) {
+      left = 0;
+    } else if (left > clientWidth - imageWidth) {
+      left = clientWidth - imageWidth;
+    }
+  }
+
+  if (imageHeight > clientHeight) {
+    if (top > 0) {
+      top = 0;
+    } else if (top < clientHeight - imageHeight) {
+      top = clientHeight - imageHeight;
+    }
+  } else {
+    if (top < 0) {
+      top = 0;
+    } else if (top > clientHeight - imageHeight) {
+      top = clientHeight - imageHeight;
+    }
+  }
+  return {
+    top: top,
+    left: left
+  };
+}
+
 var render = {
   render: function render() {
     this.initContainer();
@@ -964,12 +1008,39 @@ var render = {
         imageData = this.imageData;
 
 
-    setStyle(image, extend({
-      width: imageData.width,
-      height: imageData.height,
-      marginLeft: imageData.left,
-      marginTop: imageData.top
-    }, getTransforms(imageData)));
+    requestAnimationFrame(function () {
+      var position = void 0;
+
+      var imageWidth = imageData.width;
+      var imageHeight = imageData.height;
+      var clientWidth = window.innerWidth;
+      var clientHeight = window.innerHeight;
+
+      if (imageData.width < clientWidth && imageData.height < clientHeight) {
+        imageData.left = (clientWidth - imageWidth) / 2;
+        imageData.top = (clientHeight - imageHeight) / 2;
+      } else {
+        if (imageData.rotate % 180 === 0) {
+          position = getPosition(clientWidth, clientHeight, imageWidth, imageHeight, imageData.left, imageData.top);
+          imageData.left = position.left;
+          imageData.top = position.top;
+        } else {
+          var rotateLeft = imageData.left - (imageData.height - imageWidth) / 2;
+          var rotateTop = imageData.top - (imageData.width - imageHeight) / 2;
+
+          position = getPosition(clientWidth, clientHeight, imageHeight, imageWidth, rotateLeft, rotateTop);
+          imageData.left = position.left + (imageHeight - imageWidth) / 2;
+          imageData.top = position.top + (imageWidth - imageHeight) / 2;
+        }
+      }
+
+      setStyle(image, extend({
+        width: imageWidth,
+        height: imageHeight,
+        marginLeft: imageData.left,
+        marginTop: imageData.top
+      }, getTransforms(imageData)));
+    });
 
     if (isFunction(callback)) {
       if (this.transitioning) {
@@ -1275,7 +1346,7 @@ var handlers = {
         pointers = this.pointers;
 
 
-    if (!this.viewed || this.transitioning) {
+    if (!this.viewed || this.transitioning || e.target.tagName.toLowerCase() !== 'img') {
       return;
     }
 
@@ -1418,8 +1489,6 @@ var handlers = {
   }
 };
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 var methods = {
   // Show the viewer (only available in modal mode)
   show: function show() {
@@ -1454,7 +1523,7 @@ var methods = {
 
     removeClass(viewer, CLASS_HIDE);
     addListener(element, EVENT_SHOWN, function () {
-      _this.view(_this.target ? [].concat(_toConsumableArray(_this.images)).indexOf(_this.target) : _this.index);
+      _this.view(_this.target ? [].concat(_this.images).indexOf(_this.target) : _this.index);
       _this.target = false;
     }, {
       once: true
@@ -2715,3 +2784,4 @@ var Viewer = function () {
 extend(Viewer.prototype, render, events, handlers, methods, others);
 
 module.exports = Viewer;
+//# sourceMappingURL=viewer.common.js.map

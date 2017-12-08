@@ -19,6 +19,7 @@ import {
   removeClass,
   setData,
   setStyle,
+  getPosition,
 } from './utilities';
 
 export default {
@@ -188,12 +189,39 @@ export default {
   renderImage(callback) {
     const { image, imageData } = this;
 
-    setStyle(image, extend({
-      width: imageData.width,
-      height: imageData.height,
-      marginLeft: imageData.left,
-      marginTop: imageData.top,
-    }, getTransforms(imageData)));
+    requestAnimationFrame(() => {
+      let position;
+
+      const imageWidth = imageData.width;
+      const imageHeight = imageData.height;
+      const clientWidth = window.innerWidth;
+      const clientHeight = window.innerHeight;
+
+      if (imageData.width < clientWidth && imageData.height < clientHeight) {
+        imageData.left = (clientWidth - imageWidth) / 2;
+        imageData.top = (clientHeight - imageHeight) / 2;
+      } else {
+        if (imageData.rotate % 180 === 0) {
+          position = getPosition(clientWidth, clientHeight, imageWidth, imageHeight, imageData.left, imageData.top);
+          imageData.left = position.left;
+          imageData.top = position.top;
+        } else {
+          var rotateLeft = imageData.left - (imageData.height - imageWidth ) / 2;
+          var rotateTop = imageData.top - (imageData.width - imageHeight ) / 2;
+
+          position = getPosition(clientWidth, clientHeight, imageHeight, imageWidth, rotateLeft, rotateTop);
+          imageData.left = position.left + (imageHeight - imageWidth) / 2;
+          imageData.top = position.top + (imageWidth - imageHeight) / 2;
+        }
+      }
+
+      setStyle(image, extend({
+        width: imageWidth,
+        height: imageHeight,
+        marginLeft: imageData.left,
+        marginTop: imageData.top,
+      }, getTransforms(imageData)));
+    });
 
     if (isFunction(callback)) {
       if (this.transitioning) {

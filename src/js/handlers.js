@@ -262,7 +262,7 @@ export default {
   pointerdown(e) {
     const { options, pointers } = this;
 
-    if (!this.viewed || this.transitioning) {
+    if (!this.viewed || this.transitioning || e.target.tagName.toLowerCase() !== 'img') {
       return;
     }
 

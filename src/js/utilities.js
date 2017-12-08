@@ -628,3 +628,48 @@ export function getPointersCenter(pointers) {
     pageY,
   };
 }
+
+
+/**
+ * Get the correct position of a point in rectangle
+ * @param {number} clientWidth - container box width
+ * @param {number} clientHeight - container box height
+ * @param {number} imageWidth - image width
+ * @param {number} imageHeight - image height
+ * @param {number} left - current left
+ * @param {number} top - current top
+ * @returns {{top: *, left: *}} - correct position
+ */
+export function getPosition(clientWidth, clientHeight, imageWidth, imageHeight, left, top) {
+  if (imageWidth > clientWidth) {
+    if (left > 0) {
+      left = 0;
+    } else if (left < clientWidth - imageWidth) {
+      left = clientWidth - imageWidth;
+    }
+  } else {
+    if (left < 0) {
+      left = 0;
+    } else if (left > clientWidth - imageWidth) {
+      left = (clientWidth - imageWidth);
+    }
+  }
+
+  if (imageHeight > clientHeight) {
+    if (top > 0) {
+      top = 0;
+    } else if (top < clientHeight - imageHeight) {
+      top = clientHeight - imageHeight;
+    }
+  } else {
+    if (top < 0) {
+      top = 0;
+    } else if (top > clientHeight - imageHeight) {
+      top = clientHeight - imageHeight;
+    }
+  }
+  return {
+    top: top,
+    left: left,
+  };
+}
